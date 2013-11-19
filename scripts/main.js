@@ -3,7 +3,7 @@ require.config({
 				
     paths: {
         jquery: "../lib/jquery-1.9.1",
-        kendo: "../lib/kendo/kendo.web.min",
+        kendo: "../lib/kendo/kendo.all.min",
         text: '../lib/text'
     },
 				

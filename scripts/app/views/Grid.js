@@ -8,8 +8,36 @@ define(["jquery",
         return kendo.Class.extend({
         
             init: function() {
-                console.log('Grid started');
+                $("#home .grid").kendoGrid({
+                    columns:[
+                    {
+                        field: "FirstName",
+                        title: "First Name"
+                    },
+                    {
+                        field: "LastName",
+                        title: "Last Name"
+                    }],
+                
+                    dataSource: {
+                        data: [
+                        {
+                            FirstName: "Joe",
+                            LastName: "Smith"
+                        },
+                        {
+                            FirstName: "Jane",
+                            LastName: "Smith"
+                        }]
+                    }
+                });
 
+            },
+            
+            render: function(data){
+                var grid = $("#home .grid").data("kendoGrid");
+                //                grid.dataSource.data(data);
+                grid.refresh();
             }
         })
     });

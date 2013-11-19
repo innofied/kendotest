@@ -1,0 +1,24 @@
+html,
+body{
+    margin: 0px !important;
+    height: 100%;
+}
+#home{
+    display: -webkit-box;
+    height: 100%;
+}
+
+#home .menu {
+    width: 20%;
+    border-right: 3px solid rgb(185, 185, 185);
+
+}
+
+#home .content{
+    width: 78%;
+    padding: 10px;
+}
+
+#home .content .grid{
+    max-height: 250px;
+}
