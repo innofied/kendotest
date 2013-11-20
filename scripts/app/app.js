@@ -8,7 +8,6 @@ define(["jquery",
 
         return {
             init: function() {
-                
                 //Show the menu on the left as a treeview
                 var menu = new Menu();
                 menu.render();

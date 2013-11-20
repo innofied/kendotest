@@ -10,68 +10,128 @@ define(["jquery",
             init: function() {
                 $("#home .chart").kendoChart({
                     title: {
-                        text: "Internet Users"
+                        text: "Revenue By Country"
                     },
                     legend: {
                         position: "bottom"
                     },
                     seriesDefaults: {
-                        type: "line"
+                        type: "line",
+                        style: "smooth"
                     },
-                    series: [{
-                        name: "World",
-                        data: [15.7, 16.7, 20, 23.5, 26.6]
-                    }],
-                    valueAxis: {
-                        labels: {
-                            format: "{0}%"
+                    valueAxis: {  
+                        labels: {  
+                            format: "{0}%"  
+                        },  
+                        line: {  
+                            visible: true  
                         }
-                    },
+                    },  
                     categoryAxis: {
-                        categories: [2005, 2006, 2007, 2008, 2009]
+                        categories: ['Q1', 'Q2', 'Q3', 'Q4'],  
+                        majorGridLines: {  
+                            visible: false  
+                        }  
                     }
                 });
             }, 
             
             render: function(data){
-                var chart = $("#home .chart").data("kendoChart"),
-                svg;
-                //                chart.dataSource.data(data);
-                //                chart.refresh();
+                var chartSeries = [],
+                chart = $("#home .chart").data("kendoChart"),
+                svg, chartHeight,
+                chartOptions = chart.options;
                 
-                svg = chart.svg();
-                $("#home .chart").html(svg);
-
-                $('circle').kendoDraggable({ 
-                    hint: function(element) {
-                        return element.clone();
+                $.ajax({
+                    type: "GET",
+                    url: util.api.getChartData,
+                    data: {
+                        countries_currency: 'MDX:{[Countries_Currency].[' + data + '].Children}'
                     },
-                    drag: function(e) {
-                        console.log('Target', e.currentTarget[0], e.target)
-                        movePathForPointId(e.currentTarget[0], e.offsetY + 2);
+                    timeout: util.ajaxTimeOut,
+                    success: function(response) {
+                        console.log('Chart', response);
+                        if (response.ErrorInfo.Success) {
+                            showChart(response.Results);
+                        } else {
+                        }
                     },
-                    axis: "y",
-                    container: $('svg') 
+                    error: function(req, exception, error) {
+                        util.showErrorOnReqFail(req, exception, error);
+                    }
                 });
+               
+                function showChart(data){
+                    var color = ['blue', 'red', 'orange', 'green', 'black', 'yellow']
+                    for(var i=0; i< data.RowSet.Rows.length; i++){
+                        var chartData = [];
+                        for(var j in data.RowSet.Rows[i]){
+                            if(typeof(data.RowSet.Rows[i][j]) === 'number'){
+                                chartData.push(data.RowSet.Rows[i][j])
+                            }
+                        }
+                        chartSeries.push({
+                            name: data.RowSet.Rows[i]['Countries_Currency'],
+                            data: chartData,
+                            color: color[i]
+                        });
+                    }
+                    
+                    
+                    
+                    chartOptions.series = chartSeries;
+                    chart.redraw();  
+                    
+                    
+                    return;
+                    
+                    
+                    svg = chart.svg();
+                    $("#home .chart").html(svg);
                 
-                function movePathForPointId(element, pos) {
-                    // Update pos to account for the circle radius 
-                    pos = pos + 2;
+                    chartHeight = $('#home .chart').height() - 70;
+
+                    $('#home .chart svg g g circle').kendoDraggable({ 
+                        hint: function(element) {
+                            return element.clone();
+                        },
+                        drag: function(e) {
+                            movePathForPointId(e.currentTarget[0], e.offsetY + 2, chartHeight - e.offsetY, e);
+                        },
+                        axis: "y",
+                        container: $('svg')
+                    });
+               
+                
+                    function movePathForPointId(element, pos, chartHeight, e) {
+                        var pointIndex, path, p_array, pathElement;
+                    
+                        pos = pos + 2;
     
-                    // First find the position of the circle,     
-                    var pointIndex = $('svg g g circle').index(element); 
-   
-                    // Get the first path in the graph 
-                    var pathElement = $('svg g g path').first();
-    
-                    var path = pathElement.attr('d');     
-                    path = path.substr(1);                
-                    var p_array = path.split(" ");            
-                    p_array[(pointIndex * 2) + 1] = pos;  
-                    path = "M"+ p_array.join(" ")         
-                    pathElement.attr('d', path);          
-                    element.setAttribute('cy', pos); 
-                    return pointIndex;                 
+                        pointIndex = $('svg g g circle').index(element); 
+                        
+                        var index = $('svg g g path').index(e.currentTarget[0].parentNode);
+                        
+                        pathElement = $('svg g g path:nth-child(4)');
+                        // Get the first path in the graph 
+//                        pathElement = $('svg g g path:nth-child('+index+')');
+                        
+                        console.log('El',e.currentTarget[0].parentNode,index, pathElement,e)
+                        
+                        if(chartHeight > 0 && pos > 15){
+                            path = pathElement.attr('d');     
+                            path = path.substr(1);          
+                    
+                            p_array = path.split(" ");            
+                            p_array[(pointIndex * 2) + 1] = pos;
+                    
+                            path = "M"+ p_array.join(" ")         
+                            pathElement.attr('d', path);    
+                    
+                            element.setAttribute('cy', pos);
+                        }
+                        return pointIndex;                 
+                    }
                 }
             }
         });

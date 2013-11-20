@@ -7,37 +7,42 @@ define(["jquery",
 
         return kendo.Class.extend({
         
-            init: function() {
-                $("#home .grid").kendoGrid({
-                    columns:[
-                    {
-                        field: "FirstName",
-                        title: "First Name"
-                    },
-                    {
-                        field: "LastName",
-                        title: "Last Name"
-                    }],
+            render: function(data){ 
+                var columns=[], rows;
                 
-                    dataSource: {
-                        data: [
-                        {
-                            FirstName: "Joe",
-                            LastName: "Smith"
-                        },
-                        {
-                            FirstName: "Jane",
-                            LastName: "Smith"
-                        }]
+                $.ajax({
+                    type: "GET",
+                    url: util.api.getGridData,
+                    data: {
+                        Countries_Currency: data
+                    },
+                    timeout: util.ajaxTimeOut,
+                    success: function(response) {
+                        
+                        if (response.ErrorInfo.Success) {
+                            
+                            for(var i in response.Results.Columns){
+                                columns.push({
+                                    field: i,
+                                    title: response.Results.Columns[i]['Name']
+                                });
+                            }
+                            rows = response.Results.RowSet.Rows;
+                            
+                            $("#home .grid").kendoGrid({
+                                height: 250,
+                                columns: columns,
+                                dataSource: {
+                                    data: rows
+                                }
+                            });
+                        } else {
+                        }
+                    },
+                    error: function(req, exception, error) {
+                        util.showErrorOnReqFail(req, exception, error);
                     }
                 });
-
-            },
-            
-            render: function(data){
-                var grid = $("#home .grid").data("kendoGrid");
-                //                grid.dataSource.data(data);
-                grid.refresh();
             }
         })
     });

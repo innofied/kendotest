@@ -8,58 +8,50 @@ define(["jquery",
         'use strict';
 
         return kendo.Class.extend({
-        
-            render: function() {
+            init: function(){
                 var selectedItem,
-                chartView, gridView,
-                data = [{
-                    name: 'Total Company',
-                    items: [{
-                        name: 'Asia Paific',
-                        items: [{
-                            name: 'China'
-                        },{
-                            name: 'Japan'
-                        }]
-                    },{
-                        name: 'Americas',
-                        items: [{
-                            name: 'Mexico'
-                        },{
-                            name: 'USA'
-                        }]
-                    },{
-                        name: 'All Europe',
-                        items: [{
-                            name: 'Southern Europe'
-                        },{
-                            name: 'Northern Europe'
-                        },{
-                            name: 'Central Europe'
-                        },{
-                            name: 'Go Accessories'
-                        }]
-                    }]
-                }];
+                chartView, gridView;
                 
-                // Initialize treeview
                 $('#home .menu').kendoTreeView({
                     animation: false,
-                    dataSource: data,
-                    dataTextField: "name",
+                    dataTextField: "Name",
                     select: function(e) {
-                        selectedItem  = this.dataItem(e.node).get('name');
-                        
+                        selectedItem  = this.dataItem(e.node).get('Name');
                         // Draw the chart and grid
                         if(!chartView && ! gridView){
                             chartView = new ChartView(),
                             gridView = new GridView();
                         }
-                        chartView.render();
-                        gridView.render();
+                        chartView.render(selectedItem);
+                        gridView.render(selectedItem);
+                    }
+                });  
+            },
+            render: function() {
+                var gridData = new kendo.data.HierarchicalDataSource({
+                    transport: {
+                        read: {
+                            type: "GET",
+                            url: util.api.getMenuList,
+                            data: {
+                                DimName: 'Countries_Currency'
+                            }
+                        }
+                    },
+                    schema: {
+                        data: 'Results.Members',
+                        model: {
+                            children: "Children"
+                        }
+                    },
+                    error: function(req, exception, error) {
+                        util.showErrorOnReqFail(req, exception, error);
                     }
                 });
-
+                
+                gridData.read();
+                
+                $('#home .menu').data('kendoTreeView').setDataSource(gridData);
             }
         })
     });
