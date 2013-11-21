@@ -6,11 +6,16 @@ define(["jquery",
     function($, kendo, util, Menu) {
         'use strict';
 
+        window.KendoTestApp = {
+            view : {}
+        };
+
         return {
             init: function() {
                 //Show the menu on the left as a treeview
-                var menu = new Menu();
-                menu.render();
+                var menu = KendoTestApp.view.menu = new Menu();
+                $('#home').prepend(menu.render().el);
+
             }
         }
     });
