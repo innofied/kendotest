@@ -18,7 +18,6 @@ define(["jquery",
 
             onRender: function() {
                 var me = this,
-                    selectedCountry,
                     chartView,
                     gridView;
 
@@ -49,23 +48,26 @@ define(["jquery",
                     animation: false,
                     dataTextField: "Name",
                     dataSource: me.treeData,
-                    select: function(e) {
-                        selectedCountry = this.dataItem(e.node).get('Name');
-
-                        // Draw the chart and grid
-                        if (!KendoTestApp.view.grid) {
-                            KendoTestApp.view.grid = new GridView();
-                            $('#home .content').append(KendoTestApp.view.grid.render().el);
-                        }
-                        KendoTestApp.view.grid.loadData(selectedCountry);
-
-                        if (!KendoTestApp.view.chart) {
-                            KendoTestApp.view.chart = new ChartView();
-                            $('#home .content').append(KendoTestApp.view.chart.render().el);
-                        }
-                        KendoTestApp.view.chart.loadData(selectedCountry);
-                    }
+                    select: me.showDetailView
                 });
+            },
+
+            // Instantiate chart and grid views and render them
+            showDetailView: function(e) {
+                var selectedCountry = this.dataItem(e.node).get('Name');
+
+                // Draw the chart and grid
+                if (!KendoTestApp.view.grid) {
+                    KendoTestApp.view.grid = new GridView();
+                    $('#home .content').append(KendoTestApp.view.grid.render().el);
+                }
+                KendoTestApp.view.grid.loadData(selectedCountry);
+
+                if (!KendoTestApp.view.chart) {
+                    KendoTestApp.view.chart = new ChartView();
+                    $('#home .content').append(KendoTestApp.view.chart.render().el);
+                }
+                KendoTestApp.view.chart.loadData(selectedCountry);
             }
         })
     });
