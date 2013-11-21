@@ -15,6 +15,16 @@ define(["jquery",
                 $('#home .menu').kendoTreeView({
                     animation: false,
                     dataTextField: "Name",
+//                    dataSource: [
+//                    {
+//                        Name: "Asia Pacific", 
+//                        items: [
+//                        {
+//                            Name: "China"
+//                        }
+//                        ]
+//                    }
+//                    ],
                     select: function(e) {
                         selectedItem  = this.dataItem(e.node).get('Name');
                         // Draw the chart and grid
@@ -27,7 +37,9 @@ define(["jquery",
                     }
                 });  
             },
+            
             render: function() {
+                
                 var gridData = new kendo.data.HierarchicalDataSource({
                     transport: {
                         read: {

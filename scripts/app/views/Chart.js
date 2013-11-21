@@ -25,7 +25,8 @@ define(["jquery",
                         },  
                         line: {  
                             visible: true  
-                        }
+                        },
+                        axisCrossingValue: 0
                     },  
                     categoryAxis: {
                         categories: ['Q1', 'Q2', 'Q3', 'Q4'],  
@@ -37,11 +38,17 @@ define(["jquery",
             }, 
             
             render: function(data){
-                var chartSeries = [],
+                var  me = this,
+                chartSeries = [],
                 chart = $("#home .chart").data("kendoChart"),
-                svg, chartHeight,
-                chartOptions = chart.options;
+                svg,  chartHeight,  circle,
+                chartOptions = chart.options,
+                color = ['blue', 'red', 'orange', 'green', 'black', 'yellow'],
+                path,  pathLength,  circleLength;
                 
+                me.index = 0;
+                chartHeight = $('#home .chart').height() - 70;
+
                 $.ajax({
                     type: "GET",
                     url: util.api.getChartData,
@@ -53,21 +60,20 @@ define(["jquery",
                         console.log('Chart', response);
                         if (response.ErrorInfo.Success) {
                             showChart(response.Results);
-                        } else {
-                        }
+                        } 
                     },
                     error: function(req, exception, error) {
                         util.showErrorOnReqFail(req, exception, error);
                     }
                 });
-               
+                 
+                // Draw the chart with the retrieved data and make the points draggable
                 function showChart(data){
-                    var color = ['blue', 'red', 'orange', 'green', 'black', 'yellow']
                     for(var i=0; i< data.RowSet.Rows.length; i++){
                         var chartData = [];
                         for(var j in data.RowSet.Rows[i]){
                             if(typeof(data.RowSet.Rows[i][j]) === 'number'){
-                                chartData.push(data.RowSet.Rows[i][j])
+                                chartData.push(Math.floor(data.RowSet.Rows[i][j]/(Math.pow(10,11))))
                             }
                         }
                         chartSeries.push({
@@ -76,52 +82,60 @@ define(["jquery",
                             color: color[i]
                         });
                     }
-                    
-                    
-                    
+                                    
+                    // Set the line-chart series and redraw the chart with new data                
                     chartOptions.series = chartSeries;
                     chart.redraw();  
                     
-                    
-                    return;
-                    
-                    
+                    // convert to SVG format for dragging the point
                     svg = chart.svg();
                     $("#home .chart").html(svg);
+                    
+                    circle = $('svg g g circle');
+                    path = $('svg g g path');
+                    pathLength = $('svg g g path').length;
+                    circleLength=  $('svg g g circle').length;
+                    
+                    // Set attribute to the line path for retrieving the value
+                    path.each(function(){
+                        if(!$(this).attr('data-index')){
+                            $(this).attr('data-index', ++me.index);
+                        }
+                    });
                 
-                    chartHeight = $('#home .chart').height() - 70;
-
+                    // Set attribute to the line circle(point) for retrieving the circle
+                    for(var k=0; k<circleLength; k++){
+                        $(circle[k]).attr('data-index', (k % pathLength) +1).attr('data-bar', Math.ceil((k+1) / pathLength))
+                    }
+                
+                    // Make the chart points draggable
                     $('#home .chart svg g g circle').kendoDraggable({ 
                         hint: function(element) {
                             return element.clone();
                         },
                         drag: function(e) {
-                            movePathForPointId(e.currentTarget[0], e.offsetY + 2, chartHeight - e.offsetY, e);
+                            movePathWithPoint(e.currentTarget[0], e.offsetY + 2, chartHeight - e.offsetY);
                         },
                         axis: "y",
                         container: $('svg')
                     });
                
-                
-                    function movePathForPointId(element, pos, chartHeight, e) {
+                    
+                    // Move the line along  with the circle
+                    function movePathWithPoint(element, pos, chartHeight) {
                         var pointIndex, path, p_array, pathElement;
                     
                         pos = pos + 2;
-    
-                        pointIndex = $('svg g g circle').index(element); 
+                    
+                        pointIndex = +$(element).attr('data-bar') - 1; 
+                    
+                        pathElement = $('svg g g path[data-index='+ $(element).attr('data-index')+ ']');
                         
-                        var index = $('svg g g path').index(e.currentTarget[0].parentNode);
-                        
-                        pathElement = $('svg g g path:nth-child(4)');
-                        // Get the first path in the graph 
-//                        pathElement = $('svg g g path:nth-child('+index+')');
-                        
-                        console.log('El',e.currentTarget[0].parentNode,index, pathElement,e)
-                        
-                        if(chartHeight > 0 && pos > 15){
+                        if(chartHeight > 0 && pos > 50){
                             path = pathElement.attr('d');     
                             path = path.substr(1);          
-                    
+                            
+                            // Set the path along with the gragging circle
                             p_array = path.split(" ");            
                             p_array[(pointIndex * 2) + 1] = pos;
                     
@@ -130,7 +144,6 @@ define(["jquery",
                     
                             element.setAttribute('cy', pos);
                         }
-                        return pointIndex;                 
                     }
                 }
             }

@@ -14,18 +14,18 @@ define(['jquery', 'kendo', 'ext/util'], function($, kendo, util) {
         init: function(app) {
             _kendoApp = app;
         },
-        showLoading: function(message) {
-            $('#loading_custom_modal').css({
-                "display": 'block'
-            })
-            $(".km-loader h1").html(message ? message : "Loading");
-            _kendoApp.showLoading();
-        },
-        hideLoading: function() {
-            $('#loading_custom_modal').css({
-                "display": 'none'
-            })
-            _kendoApp.hideLoading();
+        // Show message alert
+        showMessage: function(msg, title, callback) {
+            if (!msg) {
+                return;
+            }
+
+            if (navigator.notification) {
+                navigator.notification.alert(msg, callback || function() {
+                }, title || 'Error');
+            } else {
+                alert(msg);
+            }
         },
         /**
          *
@@ -33,7 +33,7 @@ define(['jquery', 'kendo', 'ext/util'], function($, kendo, util) {
          * 
          **/
         showErrorOnReqFail: function(req, exception, error) {
-            this.hideLoading();
+//            this.hideLoading();
             if (!window.navigator.onLine) {
                 this.showMessage("Try this again when you are connected to WI-FI or have a good cellular connection.",
                     'No connection');

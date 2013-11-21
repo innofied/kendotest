@@ -36,7 +36,6 @@ define(["jquery",
                                     data: rows
                                 }
                             });
-                        } else {
                         }
                     },
                     error: function(req, exception, error) {
